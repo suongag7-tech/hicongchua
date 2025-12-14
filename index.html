@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Congchua ngủ ngonn 🎄</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  height:100vh;
+  overflow:hidden;
+  font-family:'Poppins',sans-serif;
+  color:#fff;
+}
+
+/* ===== AURORA ===== */
+.aurora-bg{
+  position:fixed;
+  inset:0;
+  z-index:0;
+  background:radial-gradient(circle at top,#08144d,#040512);
+  overflow:hidden;
+}
+.aurora-layer{
+  position:absolute;
+  inset:-30%;
+  filter:blur(70px);
+  mix-blend-mode:screen;
+  animation:auroraMove 20s ease-in-out infinite alternate;
+}
+.layer1{
+  background:
+    radial-gradient(circle at 20% 30%, rgba(0,200,255,.35), transparent 40%),
+    radial-gradient(circle at 70% 50%, rgba(100,255,200,.25), transparent 45%);
+}
+.layer2{
+  background:
+    radial-gradient(circle at 40% 70%, rgba(180,120,255,.28), transparent 45%),
+    radial-gradient(circle at 80% 30%, rgba(0,255,180,.22), transparent 40%);
+  animation-duration:26s;
+}
+.layer3{
+  background:radial-gradient(circle at 50% 40%, rgba(255,120,200,.22), transparent 45%);
+  animation-duration:32s;
+}
+@keyframes auroraMove{
+  from{transform:translate(-2%,-5%) rotate(0deg)}
+  to{transform:translate(2%,5%) rotate(2deg)}
+}
+
+/* ===== SCENE ===== */
+.scene{
+  position:relative;
+  width:100%;
+  height:100%;
+  z-index:2;
+}
+.message{
+  position:absolute;
+  top:10%;
+  width:100%;
+  text-align:center;
+  z-index:3;
+}
+.message h1{
+  font-size:1.8rem;
+  margin-bottom:8px;
+}
+.message p{
+  opacity:.85;
+  padding:0 16px;
+}
+
+canvas{
+  position:absolute;
+  inset:0;
+  z-index:2;
+}
+
+.footer{
+  position:absolute;
+  bottom:20px;
+  width:100%;
+  text-align:center;
+  font-size:.85rem;
+  opacity:.6;
+  z-index:3;
+}
+
+/* ===== SNOW ===== */
+.snowflake{
+  position:absolute;
+  top:-20px;
+  color:white;
+  animation:fall linear infinite;
+  z-index:4;
+}
+@keyframes fall{
+  to{transform:translateY(110vh)}
+}
+
+/* ===== INTRO ===== */
+.intro{
+  position:fixed;
+  inset:0;
+  background:radial-gradient(circle at top,#1b2a6d,#050814);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:10;
+  transition:opacity 1s ease;
+}
+.intro.hide{
+  opacity:0;
+  pointer-events:none;
+}
+.intro-box{text-align:center;}
+.intro-box h2{
+  font-size:2rem;
+  margin-bottom:10px;
+}
+.intro-box p{
+  opacity:.85;
+  margin-bottom:18px;
+}
+.intro-box button{
+  padding:12px 32px;
+  border:none;
+  border-radius:30px;
+  background:linear-gradient(135deg,#ffb703,#ffd166);
+  font-family:'Poppins',sans-serif;
+  font-size:1rem;
+  cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="aurora-bg">
+  <div class="aurora-layer layer1"></div>
+  <div class="aurora-layer layer2"></div>
+  <div class="aurora-layer layer3"></div>
+</div>
+
+<!-- AUDIO (FIX GITHUB PAGES) -->
+<audio id="bgm" src="love.mp3" loop playsinline preload="auto"></audio>
+
+<!-- INTRO -->
+<div class="intro" id="intro">
+  <div class="intro-box">
+    <h2>🎁 Hi congchua</h2>
+    <p>Mở ❤️‍🩹 em ở đây ✨</p>
+    <button id="startBtn">Mở</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="scene" id="scene">
+  <div class="message">
+    <h1>🎄 Congchua ngủ ngoann 🎄</h1>
+    <p id="typing-message"></p>
+  </div>
+  <canvas id="treeCanvas"></canvas>
+  <div class="footer" id="typing-footer"></div>
+</div>
+
+<script>
+/* ===== FLAGS ===== */
+let started = false;
+
+/* ===== SNOW ===== */
+function createSnow(){
+  if(!started) return;
+  const snow=document.createElement('div');
+  snow.className='snowflake';
+  snow.textContent='❄';
+  snow.style.left=Math.random()*window.innerWidth+'px';
+  snow.style.fontSize=10+Math.random()*14+'px';
+  snow.style.opacity=Math.random();
+  snow.style.animationDuration=6+Math.random()*6+'s';
+  document.getElementById('scene').appendChild(snow);
+  setTimeout(()=>snow.remove(),13000);
+}
+const snowInterval = window.innerWidth < 768 ? 380 : 220;
+
+/* ===== CANVAS ===== */
+const canvas=document.getElementById('treeCanvas');
+const ctx=canvas.getContext('2d');
+function resize(){
+  canvas.width=window.innerWidth;
+  canvas.height=window.innerHeight;
+}
+resize();
+window.addEventListener('resize',resize);
+
+/* ===== TREE ===== */
+function drawTree(time){
+  if(!started) return;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  const cx=canvas.width/2;
+  const baseY=canvas.height-90;
+  const height=340;
+
+  for(let layer=0;layer<3;layer++){
+    ctx.beginPath();
+    ctx.lineWidth=3-layer*0.5;
+    ctx.shadowBlur=26-layer*6;
+    ctx.shadowColor=`hsla(${120+layer*25},100%,70%,0.8)`;
+
+    for(let i=0;i<=300;i++){
+      const t=i/300;
+      const y=baseY-t*height;
+      const x=cx+Math.sin(t*10+time*0.001+layer)*(190-layer*25)*(1-t)*0.4;
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }
+    ctx.strokeStyle=`hsla(${120+layer*30+Math.sin(time*0.002)*20},100%,60%,0.85)`;
+    ctx.stroke();
+  }
+
+  for(let i=0;i<70;i++){
+    const t=i/70;
+    const y=baseY-t*height;
+    const x=cx+Math.sin(t*9+i+time*0.002)*190*(1-t)*0.4;
+    const r=2+Math.sin(time*0.01+i)*1.4;
+    ctx.beginPath();
+    ctx.fillStyle=`hsla(${time*0.05+i*6},100%,70%,0.9)`;
+    ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.fill();
+  }
+
+  const sy=baseY-height-30;
+  ctx.save();
+  ctx.translate(cx,sy);
+  const pulse=1+Math.sin(time*0.005)*0.12;
+  ctx.scale(pulse,pulse);
+  ctx.shadowBlur=30;
+  ctx.shadowColor='rgba(255,220,120,0.9)';
+  ctx.beginPath();
+  ctx.fillStyle='#FFE6A7';
+  ctx.strokeStyle='#FFB703';
+  ctx.lineWidth=3;
+
+  for(let i=0;i<10;i++){
+    const r=i%2===0?18:10;
+    const a=i*Math.PI/5-Math.PI/2;
+    ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r);
+  }
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+
+  requestAnimationFrame(drawTree);
+}
+
+/* ===== TYPING ===== */
+const messageText='Hôm nay congchua vất vả rồi, tối nay ngủ ngoann nhaa ✨';
+const footerText='Made with ❤ just for ChouChou';
+
+function typeText(el,text,speed,delay){
+  let i=0;
+  setTimeout(()=>{
+    const timer=setInterval(()=>{
+      el.textContent+=text[i++];
+      if(i>=text.length) clearInterval(timer);
+    },speed);
+  },delay);
+}
+
+/* ===== START ===== */
+const intro=document.getElementById('intro');
+const btn=document.getElementById('startBtn');
+const bgm=document.getElementById('bgm');
+bgm.volume=0.5;
+
+function startExperience(){
+  if(started) return;
+  started = true;
+
+  intro.classList.add('hide');
+
+  bgm.currentTime = 0;
+  bgm.muted = false;
+  bgm.play().catch(e=>{
+    console.log('Audio blocked:', e);
+  });
+
+  typeText(document.getElementById('typing-message'),messageText,55,700);
+  typeText(document.getElementById('typing-footer'),footerText,70,3500);
+
+  setInterval(createSnow, snowInterval);
+  requestAnimationFrame(drawTree);
+}
+
+btn.addEventListener('pointerdown',startExperience,{passive:true});
+btn.addEventListener('click',startExperience);
+</script>
+
+</body>
+</html>
